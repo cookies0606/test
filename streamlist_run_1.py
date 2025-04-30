@@ -1,66 +1,52 @@
 import streamlit as st
 
-st.title("Streamlit 기본 위젯 예제")
+st.title("기본 위젯 예시")
 
-st.header("텍스트 입력")
+# 텍스트 입력
 name = st.text_input("이름을 입력하세요:")
+st.write("입력한 이름:", name)
 
-st.header("숫자 입력")
-age = st.number_input("나이를 입력하세요:", min_value=0, max_value=120, step=1)
+# 숫자 슬라이더
+age = st.slider("나이를 선택하세요:", 0, 100)
+st.write("선택한 나이:", age)
 
-st.header("슬라이더")
-rating = st.slider("만족도", 0, 10, 5)
+# 버튼
+if st.button("클릭하세요"):
+    st.success("버튼이 클릭되었습니다!")
 
-st.header("버튼")
-if st.button("제출"):
-    st.write(f"{name}님, 나이는 {age}살이고 만족도는 {rating}점입니다.")
+# 체크박스
+agree = st.checkbox("동의합니다.")
+if agree:
+    st.write("감사합니다!")
 
-st.header("체크박스")
-if st.checkbox("추가 옵션 보기"):
-    st.write("체크박스가 선택되었습니다!")
-
-st.header("라디오 버튼")
-gender = st.radio("성별을 선택하세요", ["남성", "여성", "기타"])
-st.write(f"선택한 성별: {gender}")
-
-st.header("셀렉트박스")
-language = st.selectbox("좋아하는 언어는?", ["Python", "Java", "C++"])
-st.write(f"좋아하는 언어: {language}")
+# 셀렉트박스
+color = st.selectbox("좋아하는 색을 선택하세요:", ["빨강", "초록", "파랑"])
+st.write("선택한 색:", color)
 
 import streamlit as st
-import openai
+from openai import OpenAI
 
-st.title("GPT-4 응답 웹앱")
+st.title("GPT-4.1-mini 질문 응답기")
 
-# API Key 입력 받기
-api_key = st.text_input("OpenAI API Key를 입력하세요", type="password")
-
-# 질문 입력 받기
-user_question = st.text_area("질문을 입력하세요")
-
-# 모델 선택 (gpt-3.5, gpt-4 등)
-model = st.selectbox("모델 선택", ["gpt-3.5-turbo", "gpt-4"])
+api_key = st.text_input("OpenAI API 키를 입력하세요", type="password")
+query = st.text_area("GPT에게 물어볼 질문을 입력하세요:")
 
 if st.button("질문 보내기"):
     if not api_key:
-        st.warning("API Key를 입력하세요.")
-    elif not user_question.strip():
+        st.error("API 키를 입력하세요.")
+    elif not query.strip():
         st.warning("질문을 입력하세요.")
     else:
+        client = OpenAI(api_key=api_key)
         try:
-            openai.api_key = api_key
-
-            response = openai.ChatCompletion.create(
-                model=model,
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",  # 또는 gpt-4.0-mini (API 지원 버전에 따라)
                 messages=[
-                    {"role": "system", "content": "당신은 유용한 AI 비서입니다."},
-                    {"role": "user", "content": user_question}
+                    {"role": "system", "content": "You are a helpful assistant."},
+                    {"role": "user", "content": query}
                 ]
             )
-
-            answer = response.choices[0].message.content
-            st.success("답변:")
-            st.write(answer)
-
+            st.success("응답:")
+            st.write(response.choices[0].message.content)
         except Exception as e:
-            st.error(f"에러 발생: {str(e)}")
+            st.error(f"에러 발생: {e}")
